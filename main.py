@@ -54,6 +54,9 @@ def get_verification_proof(log_index, debug=False):
     Get the verification proof for a given log index from Rekor.
     """
     log_entry = get_log_entry(log_index, debug)
+    if log_entry is None:
+        print(f"Error: no log entry returned for index {log_index}")
+        return None
 
     # Get the inclusion proof from the log entry's verification details
     verification_proof = log_entry['verification']
