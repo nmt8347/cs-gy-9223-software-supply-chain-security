@@ -30,10 +30,7 @@ def get_log_entry(log_index, debug=False):
 
     # Use v1 API endpoint to fetch log entry details
     REKOR_LOG_ENTRIES_URL = "https://rekor.sigstore.dev/api/v1/log/entries"
-    verify = False
-    if os.path.exists('/etc/ssl/cert.pem'):
-        verify = '/etc/ssl/cert.pem'
-    response = requests.get(REKOR_LOG_ENTRIES_URL, verify=verify, params={"logIndex": log_index})
+    response = requests.get(REKOR_LOG_ENTRIES_URL, params={"logIndex": log_index})
     if response.status_code != 200:
         print(f"Error fetching log entry for index {log_index}")
         return None
@@ -113,10 +110,7 @@ def get_latest_checkpoint(debug=False):
     Fetch the latest checkpoint from Rekor.
     """
     REKOR_CHECKPOINT_URL = "https://rekor.sigstore.dev/api/v1/log/"
-    verify = False
-    if os.path.exists('/etc/ssl/cert.pem'):
-        verify = '/etc/ssl/cert.pem'
-    response = requests.get(REKOR_CHECKPOINT_URL, verify=verify)
+    response = requests.get(REKOR_CHECKPOINT_URL)
     if response.status_code != 200:
         print("Error fetching latest checkpoint from Rekor")
         return None
@@ -177,9 +171,6 @@ def consistency(prev_checkpoint, debug=False):
     # Equal sizes do not require proof
     proof = []
     if size1 != size2:
-        verify = False
-        if os.path.exists('/etc/ssl/cert.pem'):
-            verify = '/etc/ssl/cert.pem'
         REKOR_LOG_PROOF_URL = "https://rekor.sigstore.dev/api/v1/log/proof"
         response = requests.get(
             REKOR_LOG_PROOF_URL,
@@ -187,8 +178,7 @@ def consistency(prev_checkpoint, debug=False):
                 "firstSize": size1,
                 "lastSize": size2,
                 "treeID": tree_id,
-            },
-            verify=verify,
+            }
         )
         response.raise_for_status()  # Catch any HTTP errors (4xx/5xx)
         proof = response.json()['hashes']
