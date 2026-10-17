@@ -73,12 +73,6 @@ def get_verification_proof(log_index, debug=False):
 
 # Problem 1
 def inclusion(log_index, artifact_filepath, debug=False):
-    # verify that log index and artifact filepath values are sane
-    # extract_public_key(certificate)
-    # verify_artifact_signature(signature, public_key, artifact_filepath)
-    # get_verification_proof(log_index)
-    # verify_inclusion(DefaultHasher, index, tree_size, leaf_hash, hashes, root_hash)
-    
     if not os.path.isfile(artifact_filepath):
         print(f"Artifact file '{artifact_filepath}' does not exist.")
         return
