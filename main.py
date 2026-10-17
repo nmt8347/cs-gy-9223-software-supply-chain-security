@@ -29,11 +29,8 @@ def get_log_entry(log_index, debug=False):
         return None
 
     # Use v1 API endpoint to fetch log entry details
-    rekor_log_entry_url = f"https://rekor.sigstore.dev/api/v1/log/entries?logIndex={log_index}"
-    verify = False
-    if os.path.exists('/etc/ssl/cert.pem'):
-        verify = '/etc/ssl/cert.pem'
-    response = requests.get(rekor_log_entry_url, verify=verify)
+    REKOR_LOG_ENTRIES_URL = "https://rekor.sigstore.dev/api/v1/log/entries"
+    response = requests.get(REKOR_LOG_ENTRIES_URL, params={"logIndex": log_index})
     if response.status_code != 200:
         print(f"Error fetching log entry for index {log_index}")
         return None
@@ -73,12 +70,6 @@ def get_verification_proof(log_index, debug=False):
 
 # Problem 1
 def inclusion(log_index, artifact_filepath, debug=False):
-    # verify that log index and artifact filepath values are sane
-    # extract_public_key(certificate)
-    # verify_artifact_signature(signature, public_key, artifact_filepath)
-    # get_verification_proof(log_index)
-    # verify_inclusion(DefaultHasher, index, tree_size, leaf_hash, hashes, root_hash)
-    
     if not os.path.isfile(artifact_filepath):
         print(f"Artifact file '{artifact_filepath}' does not exist.")
         return
@@ -118,11 +109,8 @@ def get_latest_checkpoint(debug=False):
     """
     Fetch the latest checkpoint from Rekor.
     """
-    rekor_checkpoint_url = "https://rekor.sigstore.dev/api/v1/log/"
-    verify = False
-    if os.path.exists('/etc/ssl/cert.pem'):
-        verify = '/etc/ssl/cert.pem'
-    response = requests.get(rekor_checkpoint_url, verify=verify)
+    REKOR_CHECKPOINT_URL = "https://rekor.sigstore.dev/api/v1/log/"
+    response = requests.get(REKOR_CHECKPOINT_URL)
     if response.status_code != 200:
         print("Error fetching latest checkpoint from Rekor")
         return None
@@ -183,12 +171,14 @@ def consistency(prev_checkpoint, debug=False):
     # Equal sizes do not require proof
     proof = []
     if size1 != size2:
-        verify = False
-        if os.path.exists('/etc/ssl/cert.pem'):
-            verify = '/etc/ssl/cert.pem'
+        REKOR_LOG_PROOF_URL = "https://rekor.sigstore.dev/api/v1/log/proof"
         response = requests.get(
-            f'https://rekor.sigstore.dev/api/v1/log/proof?firstSize={size1}&lastSize={size2}&treeID={tree_id}',
-            verify=verify
+            REKOR_LOG_PROOF_URL,
+            params={
+                "firstSize": size1,
+                "lastSize": size2,
+                "treeID": tree_id,
+            }
         )
         response.raise_for_status()  # Catch any HTTP errors (4xx/5xx)
         proof = response.json()['hashes']
