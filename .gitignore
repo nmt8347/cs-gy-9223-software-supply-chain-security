@@ -1,2 +1,4 @@
 .venv
-test_http_get.py
+__pycache__/
+commands.txt
+.mypy_cache/
