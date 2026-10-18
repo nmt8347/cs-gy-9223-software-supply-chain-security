@@ -1,0 +1,43 @@
+[project]
+name = "cs-gy-9223-software-supply-chain-security"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Neil Thakur", email = "nmt8347@nyu.edu"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "requests (>=2.34.2,<3.0.0)",
+    "cryptography (>=50.0.2,<51.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "black (>=26.10.1,<27.0.0)",
+    "flake8 (>=7.4.1,<8.0.0)",
+    "flake8-pyproject (>=1.2.4,<2.0.0)",
+    "mypy (>=2.4.0,<3.0.0)",
+    "bandit[toml] (>=1.9.4,<2.0.0)"
+]
+
+[tool.black]
+line-length = 88
+
+[tool.flake8]
+exclude = [".git", "__pycache__", ".venv", ".mypy_cache"]
+max-line-length = 88
+
+[tool.mypy]
+python_version = 3.11
+files = ["main.py", "merkle_proof.py", "util.py"]
+
+[tool.bandit]
+exclude_dirs = [".venv", ".mypy_cache", "__pycache__"]
