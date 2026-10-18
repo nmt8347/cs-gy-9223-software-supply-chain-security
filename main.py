@@ -30,10 +30,7 @@ def get_log_entry(log_index, debug=False):
 
     # Use v1 API endpoint to fetch log entry details
     REKOR_LOG_ENTRIES_URL = "https://rekor.sigstore.dev/api/v1/log/entries"
-    verify = False
-    if os.path.exists('/etc/ssl/cert.pem'):
-        verify = '/etc/ssl/cert.pem'
-    response = requests.get(REKOR_LOG_ENTRIES_URL, verify=verify, params={"logIndex": log_index})
+    response = requests.get(REKOR_LOG_ENTRIES_URL, params={"logIndex": log_index})
     if response.status_code != 200:
         print(f"Error fetching log entry for index {log_index}")
         return None
@@ -57,6 +54,9 @@ def get_verification_proof(log_index, debug=False):
     Get the verification proof for a given log index from Rekor.
     """
     log_entry = get_log_entry(log_index, debug)
+    if log_entry is None:
+        print(f"Error: no log entry returned for index {log_index}")
+        return None
 
     # Get the inclusion proof from the log entry's verification details
     verification_proof = log_entry['verification']
@@ -113,10 +113,7 @@ def get_latest_checkpoint(debug=False):
     Fetch the latest checkpoint from Rekor.
     """
     REKOR_CHECKPOINT_URL = "https://rekor.sigstore.dev/api/v1/log/"
-    verify = False
-    if os.path.exists('/etc/ssl/cert.pem'):
-        verify = '/etc/ssl/cert.pem'
-    response = requests.get(REKOR_CHECKPOINT_URL, verify=verify)
+    response = requests.get(REKOR_CHECKPOINT_URL)
     if response.status_code != 200:
         print("Error fetching latest checkpoint from Rekor")
         return None
@@ -158,16 +155,16 @@ def consistency(prev_checkpoint, debug=False):
         print(latest_checkpoint, end='\n\n')
 
     tree_id = prev_checkpoint['treeID']
-    size1, root1 = prev_checkpoint['treeSize'], prev_checkpoint['rootHash']      # older hash
-    size2, root2 = latest_checkpoint['treeSize'], latest_checkpoint['rootHash']  # latest hash
+    prev_size, prev_root_hash = prev_checkpoint['treeSize'], prev_checkpoint['rootHash']      # older hash
+    latest_size, latest_root_hash = latest_checkpoint['treeSize'], latest_checkpoint['rootHash']  # latest hash
 
     if debug:
-        print(f'{size1=}\n{size2=}\n{root1=}\n{root2=}', end='\n\n')
+        print(f'{prev_size=}\n{latest_size=}\n{prev_root_hash=}\n{latest_root_hash=}', end='\n\n')
 
     # Ensure that the tree sizes are valid and that the tree ID matches between the previous and latest checkpoints. 
     # The first size must be at least 1, and the second size must be greater than or equal to the first size. 
-    if size1 < 1 or size2 < size1:
-        print(f'Error: invalid tree sizes given: [{size1}, {size2}]')
+    if prev_size < 1 or latest_size < prev_size:
+        print(f'Error: invalid tree sizes given: [{prev_size}, {latest_size}]')
         return
     if str(tree_id) != str(latest_checkpoint['treeID']):
         print(f"Error: tree ID mismatch: {tree_id} vs {latest_checkpoint['treeID']}")
@@ -176,19 +173,15 @@ def consistency(prev_checkpoint, debug=False):
     # Get the consistency proof
     # Equal sizes do not require proof
     proof = []
-    if size1 != size2:
-        verify = False
-        if os.path.exists('/etc/ssl/cert.pem'):
-            verify = '/etc/ssl/cert.pem'
+    if prev_size != latest_size:
         REKOR_LOG_PROOF_URL = "https://rekor.sigstore.dev/api/v1/log/proof"
         response = requests.get(
             REKOR_LOG_PROOF_URL,
             params={
-                "firstSize": size1,
-                "lastSize": size2,
+                "firstSize": prev_size,
+                "lastSize": latest_size,
                 "treeID": tree_id,
-            },
-            verify=verify,
+            }
         )
         response.raise_for_status()  # Catch any HTTP errors (4xx/5xx)
         proof = response.json()['hashes']
@@ -198,7 +191,7 @@ def consistency(prev_checkpoint, debug=False):
 
     # Verify the user's checkpoint is consistent with the latest checkpoint
     try:
-        verify_consistency(DefaultHasher, size1, size2, proof, root1, root2)
+        verify_consistency(DefaultHasher, prev_size, latest_size, proof, prev_root_hash, latest_root_hash)
     except ValueError as e:
         print(f'Consistency verification failed: {e}')
         return
