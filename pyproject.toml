@@ -48,3 +48,12 @@ exclude_dirs = [".venv", ".mypy_cache", "__pycache__"]
 
 [pytest]
 testpaths = ["tests"]
+
+[tool.coverage.run]
+include = [
+    "main.py",
+    "util.py",
+    "merkle_proof.py"
+]
+omit = [".venv/*", "tests/*"]
+branch = true
