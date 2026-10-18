@@ -1,0 +1,54 @@
+Run started:2026-10-18 01:08:08.167584+00:00
+
+Test results:
+>> Issue: [B113:request_without_timeout] Call to requests without timeout
+   Severity: Medium   Confidence: Low
+   CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b113_request_without_timeout.html
+   Location: ./main.py:36:15
+35	        verify = '/etc/ssl/cert.pem'
+36	    response = requests.get(rekor_log_entry_url, verify=verify)
+37	    if response.status_code != 200:
+
+--------------------------------------------------
+>> Issue: [B113:request_without_timeout] Call to requests without timeout
+   Severity: Medium   Confidence: Low
+   CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b113_request_without_timeout.html
+   Location: ./main.py:125:15
+124	        verify = '/etc/ssl/cert.pem'
+125	    response = requests.get(rekor_checkpoint_url, verify=verify)
+126	    if response.status_code != 200:
+
+--------------------------------------------------
+>> Issue: [B113:request_without_timeout] Call to requests without timeout
+   Severity: Medium   Confidence: Low
+   CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b113_request_without_timeout.html
+   Location: ./main.py:189:19
+188	            verify = '/etc/ssl/cert.pem'
+189	        response = requests.get(
+190	            f'https://rekor.sigstore.dev/api/v1/log/proof?firstSize={size1}&lastSize={size2}&treeID={tree_id}',
+191	            verify=verify
+192	        )
+193	        response.raise_for_status()  # Catch any HTTP errors (4xx/5xx)
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 344
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 3
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 3
+		Medium: 0
+		High: 0
+Files skipped (0):

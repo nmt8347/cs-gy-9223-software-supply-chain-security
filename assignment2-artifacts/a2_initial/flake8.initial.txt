@@ -1,0 +1,50 @@
+./main.py:3:89: E501 line too long (95 > 88 characters)
+./main.py:10:1: E302 expected 2 blank lines, found 1
+./main.py:23:1: E302 expected 2 blank lines, found 1
+./main.py:32:89: E501 line too long (95 > 88 characters)
+./main.py:55:1: E302 expected 2 blank lines, found 1
+./main.py:75:1: E302 expected 2 blank lines, found 1
+./main.py:81:1: W293 blank line contains whitespace
+./main.py:90:42: E261 at least two spaces before inline comment
+./main.py:90:43: E262 inline comment should start with '# '
+./main.py:95:89: E501 line too long (90 > 88 characters)
+./main.py:114:89: E501 line too long (106 > 88 characters)
+./main.py:117:1: E302 expected 2 blank lines, found 1
+./main.py:145:1: E302 expected 2 blank lines, found 1
+./main.py:146:12: W291 trailing whitespace
+./main.py:152:89: E501 line too long (107 > 88 characters)
+./main.py:167:89: E501 line too long (93 > 88 characters)
+./main.py:168:89: E501 line too long (94 > 88 characters)
+./main.py:173:89: E501 line too long (116 > 88 characters)
+./main.py:173:117: W291 trailing whitespace
+./main.py:174:89: E501 line too long (109 > 88 characters)
+./main.py:174:110: W291 trailing whitespace
+./main.py:190:89: E501 line too long (111 > 88 characters)
+./main.py:208:1: E302 expected 2 blank lines, found 1
+./main.py:212:61: E261 at least two spaces before inline comment
+./main.py:262:1: E305 expected 2 blank lines after class or function definition, found 1
+./merkle_proof.py:9:1: E302 expected 2 blank lines, found 1
+./merkle_proof.py:25:29: E741 ambiguous variable name 'l'
+./merkle_proof.py:35:1: E305 expected 2 blank lines after class or function definition, found 1
+./merkle_proof.py:37:1: E302 expected 2 blank lines, found 1
+./merkle_proof.py:54:89: E501 line too long (106 > 88 characters)
+./merkle_proof.py:69:89: E501 line too long (109 > 88 characters)
+./merkle_proof.py:82:1: E302 expected 2 blank lines, found 1
+./merkle_proof.py:86:1: E302 expected 2 blank lines, found 1
+./merkle_proof.py:91:1: E302 expected 2 blank lines, found 1
+./merkle_proof.py:94:1: E302 expected 2 blank lines, found 1
+./merkle_proof.py:102:1: E302 expected 2 blank lines, found 1
+./merkle_proof.py:108:1: E302 expected 2 blank lines, found 1
+./merkle_proof.py:113:1: E302 expected 2 blank lines, found 1
+./merkle_proof.py:119:89: E501 line too long (112 > 88 characters)
+./merkle_proof.py:121:1: E302 expected 2 blank lines, found 1
+./merkle_proof.py:126:89: E501 line too long (97 > 88 characters)
+./merkle_proof.py:144:89: E501 line too long (95 > 88 characters)
+./merkle_proof.py:152:1: E302 expected 2 blank lines, found 1
+./util.py:13:1: E115 expected an indented block (comment)
+./util.py:14:1: E115 expected an indented block (comment)
+./util.py:15:1: E115 expected an indented block (comment)
+./util.py:17:1: E115 expected an indented block (comment)
+./util.py:36:1: E302 expected 2 blank lines, found 1
+./util.py:41:9: E117 over-indented (comment)
+./util.py:57:5: F841 local variable 'e' is assigned to but never used

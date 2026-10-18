@@ -1,0 +1,546 @@
+--- /Users/neil-thakur/src/nmt8347/cs-gy-9223-software-supply-chain-security/util.py	2026-10-12 12:18:44.652356+00:00
++++ /Users/neil-thakur/src/nmt8347/cs-gy-9223-software-supply-chain-security/util.py	2026-10-18 02:43:37.412787+00:00
+@@ -8,53 +8,50 @@
+ from cryptography.exceptions import InvalidSignature
+ 
+ 
+ # extracts and returns public key from a given cert (in pem format)
+ def extract_public_key(cert):
+-# read the certificate
+-#    with open("cert.pem", "rb") as cert_file:
+-#        cert_data = cert_file.read()
++    # read the certificate
++    #    with open("cert.pem", "rb") as cert_file:
++    #        cert_data = cert_file.read()
+ 
+-# load the certificate
++    # load the certificate
+     certificate = x509.load_pem_x509_certificate(cert, default_backend())
+ 
+-# extract the public key
++    # extract the public key
+     public_key = certificate.public_key()
+ 
+-# save the public key to a PEM file
+-#    with open("cert_public.pem", "wb") as pub_key_file:
+-#        pub_key_file.write(public_key.public_bytes(
+-#            encoding=serialization.Encoding.PEM,
+-#            format=serialization.PublicFormat.SubjectPublicKeyInfo
+-#        ))
++    # save the public key to a PEM file
++    #    with open("cert_public.pem", "wb") as pub_key_file:
++    #        pub_key_file.write(public_key.public_bytes(
++    #            encoding=serialization.Encoding.PEM,
++    #            format=serialization.PublicFormat.SubjectPublicKeyInfo
++    #        ))
+     pem_public_key = public_key.public_bytes(
+         encoding=serialization.Encoding.PEM,
+-        format=serialization.PublicFormat.SubjectPublicKeyInfo
++        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+     )
+ 
+     return pem_public_key
++
+ 
+ def verify_artifact_signature(signature, public_key, artifact_filename):
+     # load the public key
+     # with open("cert_public.pem", "rb") as pub_key_file:
+     #    public_key = load_pem_public_key(pub_key_file.read())
+ 
+-        # load the signature
++    # load the signature
+     #    with open("hello.sig", "rb") as sig_file:
+     #        signature = sig_file.read()
+ 
+     public_key = load_pem_public_key(public_key)
+     # load the data to be verified
+     with open(artifact_filename, "rb") as data_file:
+         data = data_file.read()
+ 
+     # verify the signature
+     try:
+-        public_key.verify(
+-            signature,
+-            data,
+-            ec.ECDSA(hashes.SHA256())
+-        )
++        public_key.verify(signature, data, ec.ECDSA(hashes.SHA256()))
+     except InvalidSignature as e:
+         print("Signature is invalid")
+     except Exception as e:
+         print("Exception in verifying artifact signature:", e)
+would reformat /Users/neil-thakur/src/nmt8347/cs-gy-9223-software-supply-chain-security/util.py
+--- /Users/neil-thakur/src/nmt8347/cs-gy-9223-software-supply-chain-security/merkle_proof.py	2026-10-12 12:18:44.652012+00:00
++++ /Users/neil-thakur/src/nmt8347/cs-gy-9223-software-supply-chain-security/merkle_proof.py	2026-10-18 02:43:37.444082+00:00
+@@ -3,10 +3,11 @@
+ import base64
+ 
+ # domain separation prefixes according to the RFC
+ RFC6962_LEAF_HASH_PREFIX = 0
+ RFC6962_NODE_HASH_PREFIX = 1
++
+ 
+ class Hasher:
+     def __init__(self, hash_func=hashlib.sha256):
+         self.hash_func = hash_func
+ 
+@@ -29,12 +30,14 @@
+         return h.digest()
+ 
+     def size(self):
+         return self.new().digest_size
+ 
++
+ # DefaultHasher is a SHA256 based LogHasher
+ DefaultHasher = Hasher(hashlib.sha256)
++
+ 
+ def verify_consistency(hasher, size1, size2, proof, root1, root2):
+     # change format of args to be bytearray instead of hex strings
+     root1 = bytes.fromhex(root1)
+     root2 = bytes.fromhex(root2)
+@@ -49,11 +52,13 @@
+             raise ValueError("size1=size2, but bytearray_proof is not empty")
+         verify_match(root1, root2)
+         return
+     if size1 == 0:
+         if bytearray_proof:
+-            raise ValueError(f"expected empty bytearray_proof, but got {len(bytearray_proof)} components")
++            raise ValueError(
++                f"expected empty bytearray_proof, but got {len(bytearray_proof)} components"
++            )
+         return
+     if not bytearray_proof:
+         raise ValueError("empty bytearray_proof")
+ 
+     inner, border = decomp_incl_proof(size1 - 1, size2)
+@@ -64,11 +69,13 @@
+         seed, start = root1, 0
+     else:
+         seed, start = bytearray_proof[0], 1
+ 
+     if len(bytearray_proof) != start + inner + border:
+-        raise ValueError(f"wrong bytearray_proof size {len(bytearray_proof)}, want {start + inner + border}")
++        raise ValueError(
++            f"wrong bytearray_proof size {len(bytearray_proof)}, want {start + inner + border}"
++        )
+ 
+     bytearray_proof = bytearray_proof[start:]
+ 
+     mask = (size1 - 1) >> shift
+     hash1 = chain_inner_right(hasher, seed, bytearray_proof[:inner], mask)
+@@ -77,55 +84,65 @@
+ 
+     hash2 = chain_inner(hasher, seed, bytearray_proof[:inner], mask)
+     hash2 = chain_border_right(hasher, hash2, bytearray_proof[inner:])
+     verify_match(hash2, root2)
+ 
++
+ def verify_match(calculated, expected):
+     if calculated != expected:
+         raise RootMismatchError(expected, calculated)
+ 
++
+ def decomp_incl_proof(index, size):
+     inner = inner_proof_size(index, size)
+-    border = bin(index >> inner).count('1')
++    border = bin(index >> inner).count("1")
+     return inner, border
++
+ 
+ def inner_proof_size(index, size):
+     return (index ^ (size - 1)).bit_length()
++
+ 
+ def chain_inner(hasher, seed, proof, index):
+     for i, h in enumerate(proof):
+         if (index >> i) & 1 == 0:
+             seed = hasher.hash_children(seed, h)
+         else:
+             seed = hasher.hash_children(h, seed)
+     return seed
+ 
++
+ def chain_inner_right(hasher, seed, proof, index):
+     for i, h in enumerate(proof):
+         if (index >> i) & 1 == 1:
+             seed = hasher.hash_children(h, seed)
+     return seed
+ 
++
+ def chain_border_right(hasher, seed, proof):
+     for h in proof:
+         seed = hasher.hash_children(h, seed)
+     return seed
++
+ 
+ class RootMismatchError(Exception):
+     def __init__(self, expected_root, calculated_root):
+         self.expected_root = binascii.hexlify(bytearray(expected_root))
+         self.calculated_root = binascii.hexlify(bytearray(calculated_root))
+ 
+     def __str__(self):
+         return f"calculated root:\n{self.calculated_root}\n does not match expected root:\n{self.expected_root}"
+ 
++
+ def root_from_inclusion_proof(hasher, index, size, leaf_hash, proof):
+     if index >= size:
+         raise ValueError(f"index is beyond size: {index} >= {size}")
+ 
+     if len(leaf_hash) != hasher.size():
+-        raise ValueError(f"leaf_hash has unexpected size {len(leaf_hash)}, want {hasher.size()}")
++        raise ValueError(
++            f"leaf_hash has unexpected size {len(leaf_hash)}, want {hasher.size()}"
++        )
+ 
+     inner, border = decomp_incl_proof(index, size)
+     if len(proof) != inner + border:
+         raise ValueError(f"wrong proof size {len(proof)}, want {inner + border}")
+ 
+@@ -139,15 +156,18 @@
+     for elem in proof:
+         bytearray_proof.append(bytes.fromhex(elem))
+ 
+     bytearray_root = bytes.fromhex(root)
+     bytearray_leaf = bytes.fromhex(leaf_hash)
+-    calc_root = root_from_inclusion_proof(hasher, index, size, bytearray_leaf, bytearray_proof)
++    calc_root = root_from_inclusion_proof(
++        hasher, index, size, bytearray_leaf, bytearray_proof
++    )
+     verify_match(calc_root, bytearray_root)
+     if debug:
+         print("Calculated root hash", calc_root.hex())
+         print("Given root hash", bytearray_root.hex())
++
+ 
+ # requires entry["body"] output for a log entry
+ # returns the leaf hash according to the rfc 6962 spec
+ def compute_leaf_hash(body):
+     entry_bytes = base64.b64decode(body)
+would reformat /Users/neil-thakur/src/nmt8347/cs-gy-9223-software-supply-chain-security/merkle_proof.py
+--- /Users/neil-thakur/src/nmt8347/cs-gy-9223-software-supply-chain-security/main.py	2026-10-18 02:38:08.072491+00:00
++++ /Users/neil-thakur/src/nmt8347/cs-gy-9223-software-supply-chain-security/main.py	2026-10-18 02:43:37.454951+00:00
+@@ -1,12 +1,18 @@
+ import argparse
+ from util import extract_public_key, verify_artifact_signature
+-from merkle_proof import DefaultHasher, verify_consistency, verify_inclusion, compute_leaf_hash
++from merkle_proof import (
++    DefaultHasher,
++    verify_consistency,
++    verify_inclusion,
++    compute_leaf_hash,
++)
+ import requests
+ import json
+ import base64
+ import os
++
+ 
+ # Problem 1
+ def validate_log_index(log_index):
+     """
+     Validate that the log index is a non-negative integer.
+@@ -17,10 +23,11 @@
+             raise ValueError("log index  must be a non-negative integer")
+     except ValueError:
+         return False
+     return True
+ 
++
+ # Problem 1
+ def get_log_entry(log_index, debug=False):
+     """
+     Fetch entry details from Rekor for a given log index.
+     """
+@@ -28,11 +35,13 @@
+     if not validate_log_index(log_index):
+         return None
+ 
+     # Use v1 API endpoint to fetch log entry details
+     REKOR_LOG_ENTRIES_URL = "https://rekor.sigstore.dev/api/v1/log/entries"
+-    response = requests.get(REKOR_LOG_ENTRIES_URL, params={"logIndex": log_index}, timeout=30)
++    response = requests.get(
++        REKOR_LOG_ENTRIES_URL, params={"logIndex": log_index}, timeout=30
++    )
+     if response.status_code != 200:
+         print(f"Error fetching log entry for index {log_index}")
+         return None
+ 
+     # Get base64 encoded log entry from response
+@@ -46,10 +55,11 @@
+     # Return the log entry details
+     for _, data in log_entry.items():
+         return data
+     return None
+ 
++
+ # Problem 1
+ def get_verification_proof(log_index, debug=False):
+     """
+     Get the verification proof for a given log index from Rekor.
+     """
+@@ -57,57 +67,63 @@
+     if log_entry is None:
+         print(f"Error: no log entry returned for index {log_index}")
+         return None
+ 
+     # Get the inclusion proof from the log entry's verification details
+-    verification_proof = log_entry['verification']
+-    inclusion_proof = verification_proof['inclusionProof']
++    verification_proof = log_entry["verification"]
++    inclusion_proof = verification_proof["inclusionProof"]
+ 
+     # Return the inclusion proof details along with the computed leaf hash
+     return {
+-        "index": inclusion_proof['logIndex'],
+-        "tree_size": inclusion_proof['treeSize'],
+-        "hashes": inclusion_proof['hashes'],
+-        "root_hash": inclusion_proof['rootHash'],
+-        "leaf_hash": compute_leaf_hash(log_entry['body'])
++        "index": inclusion_proof["logIndex"],
++        "tree_size": inclusion_proof["treeSize"],
++        "hashes": inclusion_proof["hashes"],
++        "root_hash": inclusion_proof["rootHash"],
++        "leaf_hash": compute_leaf_hash(log_entry["body"]),
+     }
++
+ 
+ # Problem 1
+ def inclusion(log_index, artifact_filepath, debug=False):
+     if not os.path.isfile(artifact_filepath):
+         print(f"Artifact file '{artifact_filepath}' does not exist.")
+         return
+ 
+     log_entry = get_log_entry(log_index, debug)
+ 
+     # Extract "body" from the log entry, which is base64 encoded
+-    body = log_entry['body']
+-    body_decoded = base64.b64decode(body) #.decode('utf-8')
++    body = log_entry["body"]
++    body_decoded = base64.b64decode(body)  # .decode('utf-8')
+     body_json = json.loads(body_decoded)
+ 
+     # Extract signature and certificate from the body
+-    signature = base64.b64decode(body_json['spec']['signature']['content'])
+-    certificate = base64.b64decode(body_json['spec']['signature']['publicKey']['content'])
++    signature = base64.b64decode(body_json["spec"]["signature"]["content"])
++    certificate = base64.b64decode(
++        body_json["spec"]["signature"]["publicKey"]["content"]
++    )
+ 
+     # Extract public key from the certificate
+     public_key = extract_public_key(certificate)
+ 
+     # Verify the artifact signature using the extracted public key
+     verify_artifact_signature(signature, public_key, artifact_filepath)
+ 
+     # Get the verification proof for the log index
+     proof = get_verification_proof(log_index, debug)
+-    index = proof['index']
+-    tree_size = proof['tree_size']
+-    leaf_hash = proof['leaf_hash']
+-    hashes = proof['hashes']
+-    root_hash = proof['root_hash']
++    index = proof["index"]
++    tree_size = proof["tree_size"]
++    leaf_hash = proof["leaf_hash"]
++    hashes = proof["hashes"]
++    root_hash = proof["root_hash"]
+ 
+     # Verify inclusion for a given log index with the proof key-value pairs
+     verify_inclusion(DefaultHasher, index, tree_size, leaf_hash, hashes, root_hash)
+ 
+-    print(f"Successfully verified inclusion of log index {log_index} for artifact '{artifact_filepath}'.")
++    print(
++        f"Successfully verified inclusion of log index {log_index} for artifact '{artifact_filepath}'."
++    )
++
+ 
+ # Problem 2
+ def get_latest_checkpoint(debug=False):
+     """
+     Fetch the latest checkpoint from Rekor.
+@@ -130,45 +146,55 @@
+         with open("checkpoint.json", "w") as f:
+             json.dump(latest_checkpoint, f, indent=4)
+ 
+     return latest_checkpoint
+ 
++
+ # Problem 2
+ def consistency(prev_checkpoint, debug=False):
+-    # TODO: 
++    # TODO:
+     # verify that prev checkpoint is not empty
+     # get_latest_checkpoint()
+     """
+     Verify consistency of the transparency log.
+     """
+     # Verify that the previous checkpoint is not empty and contains the treeID, treeSize, and rootHash keys
+-    for k in ['treeID', 'treeSize', 'rootHash']:
++    for k in ["treeID", "treeSize", "rootHash"]:
+         if k not in prev_checkpoint:
+-            print(f'Error missing key of previous checkpoint: {k}')
++            print(f"Error missing key of previous checkpoint: {k}")
+             return
+ 
+     # Fetch the latest checkpoint from Rekor
+     latest_checkpoint = get_latest_checkpoint(debug)
+     if latest_checkpoint is None:
+         return
+     if debug:
+-        print('Latest checkpoint:')
+-        print(latest_checkpoint, end='\n\n')
+-
+-    tree_id = prev_checkpoint['treeID']
+-    prev_size, prev_root_hash = prev_checkpoint['treeSize'], prev_checkpoint['rootHash']      # older hash
+-    latest_size, latest_root_hash = latest_checkpoint['treeSize'], latest_checkpoint['rootHash']  # latest hash
+-
+-    if debug:
+-        print(f'{prev_size=}\n{latest_size=}\n{prev_root_hash=}\n{latest_root_hash=}', end='\n\n')
+-
+-    # Ensure that the tree sizes are valid and that the tree ID matches between the previous and latest checkpoints. 
+-    # The first size must be at least 1, and the second size must be greater than or equal to the first size. 
++        print("Latest checkpoint:")
++        print(latest_checkpoint, end="\n\n")
++
++    tree_id = prev_checkpoint["treeID"]
++    prev_size, prev_root_hash = (
++        prev_checkpoint["treeSize"],
++        prev_checkpoint["rootHash"],
++    )  # older hash
++    latest_size, latest_root_hash = (
++        latest_checkpoint["treeSize"],
++        latest_checkpoint["rootHash"],
++    )  # latest hash
++
++    if debug:
++        print(
++            f"{prev_size=}\n{latest_size=}\n{prev_root_hash=}\n{latest_root_hash=}",
++            end="\n\n",
++        )
++
++    # Ensure that the tree sizes are valid and that the tree ID matches between the previous and latest checkpoints.
++    # The first size must be at least 1, and the second size must be greater than or equal to the first size.
+     if prev_size < 1 or latest_size < prev_size:
+-        print(f'Error: invalid tree sizes given: [{prev_size}, {latest_size}]')
+-        return
+-    if str(tree_id) != str(latest_checkpoint['treeID']):
++        print(f"Error: invalid tree sizes given: [{prev_size}, {latest_size}]")
++        return
++    if str(tree_id) != str(latest_checkpoint["treeID"]):
+         print(f"Error: tree ID mismatch: {tree_id} vs {latest_checkpoint['treeID']}")
+         return
+ 
+     # Get the consistency proof
+     # Equal sizes do not require proof
+@@ -180,52 +206,66 @@
+             params={
+                 "firstSize": prev_size,
+                 "lastSize": latest_size,
+                 "treeID": tree_id,
+             },
+-            timeout=30
++            timeout=30,
+         )
+         response.raise_for_status()  # Catch any HTTP errors (4xx/5xx)
+-        proof = response.json()['hashes']
+-    if debug:
+-        print('Proof:')
+-        print(proof, end='\n\n')
++        proof = response.json()["hashes"]
++    if debug:
++        print("Proof:")
++        print(proof, end="\n\n")
+ 
+     # Verify the user's checkpoint is consistent with the latest checkpoint
+     try:
+-        verify_consistency(DefaultHasher, prev_size, latest_size, proof, prev_root_hash, latest_root_hash)
++        verify_consistency(
++            DefaultHasher,
++            prev_size,
++            latest_size,
++            proof,
++            prev_root_hash,
++            latest_root_hash,
++        )
+     except ValueError as e:
+-        print(f'Consistency verification failed: {e}')
+-        return
+-
+-    print('Consistency verification successful.')
++        print(f"Consistency verification failed: {e}")
++        return
++
++    print("Consistency verification successful.")
++
+ 
+ def main():
+     debug = False
+     parser = argparse.ArgumentParser(description="Rekor Verifier")
+-    parser.add_argument('-d', '--debug', help='Debug mode',
+-                        required=False, action='store_true') # Default false
+-    parser.add_argument('-c', '--checkpoint', help='Obtain latest checkpoint\
+-                        from Rekor Server public instance',
+-                        required=False, action='store_true')
+-    parser.add_argument('--inclusion', help='Verify inclusion of an\
++    parser.add_argument(
++        "-d", "--debug", help="Debug mode", required=False, action="store_true"
++    )  # Default false
++    parser.add_argument(
++        "-c",
++        "--checkpoint",
++        help="Obtain latest checkpoint\
++                        from Rekor Server public instance",
++        required=False,
++        action="store_true",
++    )
++    parser.add_argument("--inclusion", help="Verify inclusion of an\
+                         entry in the Rekor Transparency Log using log index\
+                         and artifact filename.\
+-                        Usage: --inclusion 126574567',
+-                        required=False, type=int)
+-    parser.add_argument('--artifact', help='Artifact filepath for verifying\
+-                        signature',
+-                        required=False)
+-    parser.add_argument('--consistency', help='Verify consistency of a given\
+-                        checkpoint with the latest checkpoint.',
+-                        action='store_true')
+-    parser.add_argument('--tree-id', help='Tree ID for consistency proof',
+-                        required=False)
+-    parser.add_argument('--tree-size', help='Tree size for consistency proof',
+-                        required=False, type=int)
+-    parser.add_argument('--root-hash', help='Root hash for consistency proof',
+-                        required=False)
++                        Usage: --inclusion 126574567", required=False, type=int)
++    parser.add_argument("--artifact", help="Artifact filepath for verifying\
++                        signature", required=False)
++    parser.add_argument("--consistency", help="Verify consistency of a given\
++                        checkpoint with the latest checkpoint.", action="store_true")
++    parser.add_argument(
++        "--tree-id", help="Tree ID for consistency proof", required=False
++    )
++    parser.add_argument(
++        "--tree-size", help="Tree size for consistency proof", required=False, type=int
++    )
++    parser.add_argument(
++        "--root-hash", help="Root hash for consistency proof", required=False
++    )
+     args = parser.parse_args()
+     if args.debug:
+         debug = True
+         print("enabled debug mode")
+     if args.checkpoint:
+@@ -251,7 +291,8 @@
+         prev_checkpoint["treeSize"] = args.tree_size
+         prev_checkpoint["rootHash"] = args.root_hash
+ 
+         consistency(prev_checkpoint, debug)
+ 
++
+ if __name__ == "__main__":
+     main()
+would reformat /Users/neil-thakur/src/nmt8347/cs-gy-9223-software-supply-chain-security/main.py
+
+Oh no! 💥 💔 💥
+3 files would be reformatted, 1 file would be left unchanged.
