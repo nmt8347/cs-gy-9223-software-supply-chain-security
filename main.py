@@ -119,7 +119,8 @@ def inclusion(log_index, artifact_filepath, debug=False):
     verify_inclusion(DefaultHasher, index, tree_size, leaf_hash, hashes, root_hash)
 
     print(
-        f"Successfully verified inclusion of log index {log_index} for artifact '{artifact_filepath}'."
+        f"Successfully verified inclusion of log index {log_index} "
+        f"for artifact '{artifact_filepath}'."
     )
 
 
@@ -157,7 +158,8 @@ def consistency(prev_checkpoint, debug=False):
     """
     Verify consistency of the transparency log.
     """
-    # Verify that the previous checkpoint is not empty and contains the treeID, treeSize, and rootHash keys
+    # Verify that the previous checkpoint is not empty and
+    # contains the treeID, treeSize, and rootHash keys
     for k in ["treeID", "treeSize", "rootHash"]:
         if k not in prev_checkpoint:
             print(f"Error missing key of previous checkpoint: {k}")
@@ -187,8 +189,10 @@ def consistency(prev_checkpoint, debug=False):
             end="\n\n",
         )
 
-    # Ensure that the tree sizes are valid and that the tree ID matches between the previous and latest checkpoints.
-    # The first size must be at least 1, and the second size must be greater than or equal to the first size.
+    # Ensure that the tree sizes are valid and that the tree ID matches
+    # between the previous and latest checkpoints.
+    # The first size must be at least 1,
+    # and the second size must be greater than or equal to the first size.
     if prev_size < 1 or latest_size < prev_size:
         print(f"Error: invalid tree sizes given: [{prev_size}, {latest_size}]")
         return
